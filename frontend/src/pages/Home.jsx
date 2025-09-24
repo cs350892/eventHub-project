@@ -1,18 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import EventCard from '../components/EventCard.jsx';
-import { sampleEvents, categories } from '../data.js';
 import { Search, Filter, Calendar } from 'lucide-react';
+import { categories } from '../data.js';
 
 function Home() {
-  const [events] = useState(sampleEvents);
+  const [events, setEvents] = useState([]);
   const [filters, setFilters] = useState({
     search: '',
     category: 'all',
-    date: ''
+    date: '',
   });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const filteredEvents = events.filter(event => {
-    const matchesSearch = event.title.toLowerCase().includes(filters.search.toLowerCase()) ||
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const res = await fetch('/api/events', {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        });
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setEvents(data);
+        } else {
+          setError('Failed to load events');
+        }
+      } catch (err) {
+        setError('Error connecting to server');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchEvents();
+  }, []);
+
+  const filteredEvents = events.filter((event) => {
+    const matchesSearch =
+      event.title.toLowerCase().includes(filters.search.toLowerCase()) ||
       event.description.toLowerCase().includes(filters.search.toLowerCase());
     const matchesCategory = filters.category === 'all' || event.category === filters.category;
     const matchesDate = !filters.date || new Date(event.date).toISOString().split('T')[0] === filters.date;
@@ -20,29 +44,35 @@ function Home() {
   });
 
   const handleFilterChange = (key, value) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
+    setFilters((prev) => ({ ...prev, [key]: value }));
   };
 
   const clearFilters = () => {
     setFilters({ search: '', category: 'all', date: '' });
   };
 
+  if (loading) {
+    return <div className="text-center py-12">Loading events...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center py-12 text-red-600">{error}</div>;
+  }
+
   return (
- <div className="max-w-7xl mx-auto">
-  <div className="mb-8 text-center">
-    <h1 className="text-4xl font-bold text-gray-900 mb-4">
-      Explore the Spirit of HBTU Kanpur
-    </h1>
-    <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-      With a proud legacy of over a century, Harcourt Butler Technical University 
-      stands as a hub of innovation, culture, and collaboration. Discover events 
-      curated by our skilled students — from cutting-edge tech fests to vibrant 
-      cultural nights — and be part of a community where tradition meets modern 
-      excellence.
-    </p>
-  </div>
-
-
+    <div className="max-w-7xl mx-auto">
+      <div className="mb-8 text-center">
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          Explore the Spirit of HBTU Kanpur
+        </h1>
+        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          With a proud legacy of over a century, Harcourt Butler Technical University 
+          stands as a hub of innovation, culture, and collaboration. Discover events 
+          curated by our skilled students — from cutting-edge tech fests to vibrant 
+          cultural nights — and be part of a community where tradition meets modern 
+          excellence.
+        </p>
+      </div>
       <div className="bg-white rounded-lg shadow-md p-6 mb-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="md:col-span-2">
@@ -65,8 +95,10 @@ function Home() {
                 onChange={(e) => handleFilterChange('category', e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white"
               >
-                {categories.map(cat => (
-                  <option key={cat.value} value={cat.value}>{cat.label}</option>
+                {categories.map((cat) => (
+                  <option key={cat.value} value={cat.value}>
+                    {cat.label}
+                  </option>
                 ))}
               </select>
             </div>
@@ -120,8 +152,8 @@ function Home() {
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredEvents.map(event => (
-              <EventCard key={event.id} event={event} />
+            {filteredEvents.map((event) => (
+              <EventCard key={event._id} event={event} />
             ))}
           </div>
         </>

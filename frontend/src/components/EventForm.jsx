@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { sampleImages } from '../data';
 import { X, Save } from 'lucide-react';
+import { sampleImages } from '../data';
 
 function EventForm({ event, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
@@ -12,14 +12,21 @@ function EventForm({ event, onSubmit, onCancel }) {
     category: event?.category || 'Technology',
     maxAttendees: event?.maxAttendees || 50,
     price: event?.price || 0,
-    imageUrl: event?.imageUrl || sampleImages[0]
+    imageUrl: event?.imageUrl || sampleImages[0],
   });
 
   const [errors, setErrors] = useState({});
 
   const categories = [
-    'Technology', 'Business', 'Arts', 'Sports', 'Music',
-    'Education', 'Health', 'Food', 'Other'
+    'Technology',
+    'Business',
+    'Arts',
+    'Sports',
+    'Music',
+    'Education',
+    'Health',
+    'Food',
+    'Other',
   ];
 
   const validateForm = () => {
@@ -50,12 +57,12 @@ function EventForm({ event, onSubmit, onCancel }) {
 
   const handleInputChange = (e) => {
     const { name, value, type } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'number' ? (value === '' ? 0 : Number(value)) : value
+      [name]: type === 'number' ? (value === '' ? 0 : Number(value)) : value,
     }));
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: undefined }));
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
   };
 
@@ -69,34 +76,44 @@ function EventForm({ event, onSubmit, onCancel }) {
       </div>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">Event Title *</label>
+          <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+            Event Title *
+          </label>
           <input
             type="text"
             id="title"
             name="title"
             value={formData.title}
             onChange={handleInputChange}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.title ? 'border-red-500' : 'border-gray-300'}`}
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              errors.title ? 'border-red-500' : 'border-gray-300'
+            }`}
             placeholder="Enter event title"
           />
           {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title}</p>}
         </div>
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
+          <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+            Description *
+          </label>
           <textarea
             id="description"
             name="description"
             rows={4}
             value={formData.description}
             onChange={handleInputChange}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.description ? 'border-red-500' : 'border-gray-300'}`}
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              errors.description ? 'border-red-500' : 'border-gray-300'
+            }`}
             placeholder="Describe your event"
           />
           {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+            <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">
+              Date *
+            </label>
             <input
               type="date"
               id="date"
@@ -104,38 +121,50 @@ function EventForm({ event, onSubmit, onCancel }) {
               value={formData.date}
               onChange={handleInputChange}
               min={new Date().toISOString().split('T')[0]}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.date ? 'border-red-500' : 'border-gray-300'}`}
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                errors.date ? 'border-red-500' : 'border-gray-300'
+              }`}
             />
             {errors.date && <p className="mt-1 text-sm text-red-600">{errors.date}</p>}
           </div>
           <div>
-            <label htmlFor="time" className="block text-sm font-medium text-gray-700 mb-1">Time *</label>
+            <label htmlFor="time" className="block text-sm font-medium text-gray-700 mb-1">
+              Time *
+            </label>
             <input
               type="time"
               id="time"
               name="time"
               value={formData.time}
               onChange={handleInputChange}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.time ? 'border-red-500' : 'border-gray-300'}`}
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                errors.time ? 'border-red-500' : 'border-gray-300'
+              }`}
             />
             {errors.time && <p className="mt-1 text-sm text-red-600">{errors.time}</p>}
           </div>
         </div>
         <div>
-          <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">Location *</label>
+          <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
+            Location *
+          </label>
           <input
             type="text"
             id="location"
             name="location"
             value={formData.location}
             onChange={handleInputChange}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.location ? 'border-red-500' : 'border-gray-300'}`}
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              errors.location ? 'border-red-500' : 'border-gray-300'
+            }`}
             placeholder="Event location"
           />
           {errors.location && <p className="mt-1 text-sm text-red-600">{errors.location}</p>}
         </div>
         <div>
-          <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
+          <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
+            Category *
+          </label>
           <select
             id="category"
             name="category"
@@ -143,14 +172,18 @@ function EventForm({ event, onSubmit, onCancel }) {
             onChange={handleInputChange}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            {categories.map(cat => (
-              <option key={cat} value={cat}>{cat}</option>
+            {categories.map((cat) => (
+              <option key={cat} value={cat}>
+                {cat}
+              </option>
             ))}
           </select>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="maxAttendees" className="block text-sm font-medium text-gray-700 mb-1">Max Attendees *</label>
+            <label htmlFor="maxAttendees" className="block text-sm font-medium text-gray-700 mb-1">
+              Max Attendees *
+            </label>
             <input
               type="number"
               id="maxAttendees"
@@ -158,12 +191,16 @@ function EventForm({ event, onSubmit, onCancel }) {
               value={formData.maxAttendees}
               onChange={handleInputChange}
               min="1"
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.maxAttendees ? 'border-red-500' : 'border-gray-300'}`}
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                errors.maxAttendees ? 'border-red-500' : 'border-gray-300'
+              }`}
             />
             {errors.maxAttendees && <p className="mt-1 text-sm text-red-600">{errors.maxAttendees}</p>}
           </div>
           <div>
-            <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
+            <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
+              Price (₹)
+            </label>
             <input
               type="number"
               id="price"
@@ -172,7 +209,9 @@ function EventForm({ event, onSubmit, onCancel }) {
               onChange={handleInputChange}
               min="0"
               step="0.01"
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.price ? 'border-red-500' : 'border-gray-300'}`}
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                errors.price ? 'border-red-500' : 'border-gray-300'
+              }`}
               placeholder="0.00"
             />
             {errors.price && <p className="mt-1 text-sm text-red-600">{errors.price}</p>}
@@ -185,8 +224,10 @@ function EventForm({ event, onSubmit, onCancel }) {
               <button
                 key={index}
                 type="button"
-                onClick={() => setFormData(prev => ({ ...prev, imageUrl: img }))}
-                className={`relative h-20 rounded-md overflow-hidden border-2 ${formData.imageUrl === img ? 'border-blue-500' : 'border-gray-200'} hover:border-blue-300`}
+                onClick={() => setFormData((prev) => ({ ...prev, imageUrl: img }))}
+                className={`relative h-20 rounded-md overflow-hidden border-2 ${
+                  formData.imageUrl === img ? 'border-blue-500' : 'border-gray-200'
+                } hover:border-blue-300`}
               >
                 <img src={img} alt={`Option ${index + 1}`} className="w-full h-full object-cover" />
               </button>

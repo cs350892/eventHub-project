@@ -1,34 +1,100 @@
-import React, { useState } from 'react';
-import { v4 as uuidv4 } from 'uuid';
+import React, { useState, useEffect } from 'react';
 import EventForm from '../components/EventForm.jsx';
-import { sampleEvents } from '../data.js';
-import { Plus, Edit, Trash2, Calendar, Clock, MapPin, DollarSign, Users } from 'lucide-react';
+import { Plus, Edit, Trash2, Calendar, Clock, MapPin, IndianRupee, Users } from 'lucide-react';
 
 function Dashboard() {
-  const [events, setEvents] = useState(sampleEvents);
+  const [events, setEvents] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const handleCreateEvent = (eventData) => {
-    const newEvent = {
-      ...eventData,
-      id: uuidv4(),
-      organizer: { name: 'User' },
-      attendeeCount: 0,
-      attendees: []
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const res = await fetch('/api/events', {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        });
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setEvents(data);
+        } else {
+          setError('Failed to load events');
+        }
+      } catch (err) {
+        setError('Error connecting to server');
+      } finally {
+        setLoading(false);
+      }
     };
-    setEvents([...events, newEvent]);
-    setShowForm(false);
+    fetchEvents();
+  }, []);
+
+  const handleCreateEvent = async (eventData) => {
+    try {
+      const res = await fetch('/api/events/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify(eventData),
+      });
+      const data = await res.json();
+      if (data._id) {
+        setEvents([...events, { ...eventData, _id: data._id, organizer: { name: 'Admin' }, attendeeCount: 0, attendees: [] }]);
+        setShowForm(false);
+      } else {
+        alert(data.error || 'Error creating event');
+      }
+    } catch (err) {
+      alert('Error connecting to server');
+    }
   };
 
-  const handleUpdateEvent = (eventData) => {
-    setEvents(events.map(event => event.id === editingEvent.id ? { ...eventData, id: event.id, organizer: event.organizer, attendeeCount: event.attendeeCount, attendees: event.attendees } : event));
-    setEditingEvent(null);
+  const handleUpdateEvent = async (eventData) => {
+    try {
+      const res = await fetch(`/api/events/${editingEvent._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify(eventData),
+      });
+      const data = await res.json();
+      if (data._id) {
+        setEvents(
+          events.map((event) =>
+            event._id === editingEvent._id
+              ? { ...eventData, _id: event._id, organizer: event.organizer, attendeeCount: event.attendeeCount, attendees: event.attendees }
+              : event
+          )
+        );
+        setEditingEvent(null);
+      } else {
+        alert(data.error || 'Error updating event');
+      }
+    } catch (err) {
+      alert('Error connecting to server');
+    }
   };
 
-  const handleDeleteEvent = (eventId) => {
+  const handleDeleteEvent = async (eventId) => {
     if (window.confirm('Are you sure you want to delete this event?')) {
-      setEvents(events.filter(event => event.id !== eventId));
+      try {
+        const res = await fetch(`/api/events/${eventId}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        });
+        if (res.ok) {
+          setEvents(events.filter((event) => event._id !== eventId));
+        } else {
+          alert('Error deleting event');
+        }
+      } catch (err) {
+        alert('Error connecting to server');
+      }
     }
   };
 
@@ -38,9 +104,17 @@ function Dashboard() {
       weekday: 'short',
       year: 'numeric',
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
     });
   };
+
+  if (loading) {
+    return <div className="text-center py-12">Loading events...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center py-12 text-red-600">{error}</div>;
+  }
 
   if (showForm || editingEvent) {
     return (
@@ -74,8 +148,8 @@ function Dashboard() {
       </div>
       {events.length > 0 ? (
         <div className="space-y-6">
-          {events.map(event => (
-            <div key={event.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+          {events.map((event) => (
+            <div key={event._id} className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="p-6">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1">
@@ -95,8 +169,8 @@ function Dashboard() {
                         <span className="truncate">{event.location}</span>
                       </div>
                       <div className="flex items-center">
-                        <DollarSign className="h-4 w-4 mr-2" />
-                        <span>{event.price === 0 ? 'Free' : `$${event.price}`}</span>
+                        <IndianRupee className="h-4 w-4 mr-2" />
+                        <span>{event.price === 0 ? 'Free' : `₹${event.price}`}</span>
                       </div>
                     </div>
                   </div>
@@ -109,7 +183,7 @@ function Dashboard() {
                       <Edit className="h-4 w-4" />
                     </button>
                     <button
-                      onClick={() => handleDeleteEvent(event.id)}
+                      onClick={() => handleDeleteEvent(event._id)}
                       className="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors"
                       title="Delete Event"
                     >
