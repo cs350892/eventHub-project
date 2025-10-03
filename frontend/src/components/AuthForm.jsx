@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X } from 'lucide-react';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function AuthForm({ onClose }) {
   const [isLogin, setIsLogin] = useState(true);
@@ -12,9 +14,6 @@ function AuthForm({ onClose }) {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  // change this to your backend URL if needed
-  const API_URL = 'http://localhost:5000';
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -23,12 +22,10 @@ function AuthForm({ onClose }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
-    const url = `${API_URL}${endpoint}`;
 
     try {
-      const res = await fetch(url, {
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -37,26 +34,30 @@ function AuthForm({ onClose }) {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'Something went wrong');
-        return;
+        throw new Error(data.error || `Request failed: ${res.status}`);
       }
 
-      // store token + role
-      if (data.token) {
+      if (isLogin) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('role', data.role);
+        toast.success('Logged in successfully');
         navigate(data.role === 'admin' ? '/dashboard' : '/');
       } else {
-        setError(data.error || 'Something went wrong');
+        toast.success('Account created! Please log in.');
+        setIsLogin(true);
       }
     } catch (err) {
-      setError('Error connecting to server');
+      console.error('Auth error:', err);
+      const errorMsg = err.message || 'Unable to connect to server';
+      setError(errorMsg);
+      toast.error(errorMsg);
     }
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-md p-6 w-full max-w-md relative">
+        <ToastContainer />
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"

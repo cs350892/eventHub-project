@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import EventCard from '../components/EventCard.jsx';
 import { Search, Filter, Calendar } from 'lucide-react';
 import { categories } from '../data.js';
@@ -15,18 +17,41 @@ function Home() {
 
   useEffect(() => {
     const fetchEvents = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('Please log in to view events');
+        toast.error('Please log in to view events');
+        setLoading(false);
+        return;
+      }
+
       try {
         const res = await fetch('/api/events', {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
         });
+
+        if (!res.ok) {
+          if (res.status === 401) {
+            throw new Error('Unauthorized: Please log in again');
+          }
+          throw new Error(`Server error: ${res.status} ${res.statusText}`);
+        }
+
         const data = await res.json();
         if (Array.isArray(data)) {
           setEvents(data);
         } else {
-          setError('Failed to load events');
+          throw new Error('Invalid response format');
         }
       } catch (err) {
-        setError('Error connecting to server');
+        console.error('Fetch error:', err);
+        const errorMsg = err.message || 'Unable to connect to server';
+        setError(errorMsg);
+        toast.error(errorMsg);
       } finally {
         setLoading(false);
       }
@@ -51,16 +76,9 @@ function Home() {
     setFilters({ search: '', category: 'all', date: '' });
   };
 
-  if (loading) {
-    return <div className="text-center py-12">Loading events...</div>;
-  }
-
-  if (error) {
-    return <div className="text-center py-12 text-red-600">{error}</div>;
-  }
-
   return (
     <div className="max-w-7xl mx-auto">
+      <ToastContainer />
       <div className="mb-8 text-center">
         <h1 className="text-4xl font-bold text-gray-900 mb-4">
           Explore the Spirit of HBTU Kanpur
@@ -144,7 +162,9 @@ function Home() {
           </div>
         )}
       </div>
-      {filteredEvents.length > 0 ? (
+      {loading && <div className="text-center py-12">Loading events...</div>}
+      {error && <div className="text-center py-12 text-red-600">{error}</div>}
+      {!loading && !error && filteredEvents.length > 0 ? (
         <>
           <div className="mb-6">
             <p className="text-gray-600">
@@ -158,15 +178,17 @@ function Home() {
           </div>
         </>
       ) : (
-        <div className="text-center py-12">
-          <Calendar className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No events found</h3>
-          <p className="text-gray-500">
-            {filters.search || filters.category !== 'all' || filters.date
-              ? 'Try adjusting your search filters to find more events.'
-              : 'There are no upcoming events at the moment. Check back later!'}
-          </p>
-        </div>
+        !loading && !error && (
+          <div className="text-center py-12">
+            <Calendar className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No events found</h3>
+            <p className="text-gray-500">
+              {filters.search || filters.category !== 'all' || filters.date
+                ? 'Try adjusting your search filters to find more events.'
+                : 'There are no upcoming events at the moment. Check back later!'}
+            </p>
+          </div>
+        )
       )}
     </div>
   );
